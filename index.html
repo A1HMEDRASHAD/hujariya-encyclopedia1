@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موسوعة الحجرية | المكتبة الوطنية لتوثيق المؤلفات اليمنية</title>
+    <!-- خطوط عربية احترافية من جوجل -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- شريط تعريفي علوي للمؤسسة -->
+    <div class="top-banner">
+        <span>🇾🇪 مؤسسة وطنية ثقافية غير ربحية تُعنى بحصر وتوثيق المؤلفات والكتّاب اليمنيين</span>
+    </div>
+
+    <!-- الهيدر وشريط التنقل -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="brand-icon">🏰</div>
+                <div class="brand-text">
+                    <h1>موسوعة الحجرية</h1>
+                    <p>المكتبة الوطنية الرقمية اليمنية</p>
+                </div>
+            </div>
+
+            <nav class="nav-tabs">
+                <button class="nav-btn active" data-tab="shelvesTab">📚 الرفوف والموسوعة</button>
+                <button class="nav-btn" id="myLibraryTabBtn" data-tab="myLibraryTab" style="display:none;">🔖 مكتبتي</button>
+                <button class="nav-btn" id="adminTabBtn" data-tab="adminTab" style="display:none;">🛡️ لوحة المراجعة <span id="pendingBadge" class="badge">0</span></button>
+            </nav>
+
+            <div class="user-actions">
+                <button id="openAddModalBtn" class="btn-gold" style="display:none;">+ المساهمة بكتاب</button>
+                <div id="userProfileArea" class="user-profile" style="display:none;">
+                    <img id="userAvatar" src="" alt="صورة المستخدم">
+                    <span id="userName"></span>
+                </div>
+                <button id="authBtn" class="btn-outline">تسجيل الدخول بجوجل</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- القسم الترحيبي والبحث -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h2>منبع العلم والثقافة.. في مكان واحد</h2>
+            <p>ابحث في مئات المؤلفات اليمنية، شارك في تقييم ومناقشة الكتب، وساهم معنا في بناء أكبر أرشيف وطني.</p>
+            
+            <div class="search-bar-wrapper">
+                <input type="text" id="searchInput" placeholder="ابحث باسم الكتاب، أو اسم المؤلف اليمني...">
+                <select id="categoryFilter">
+                    <option value="all">جميع التصنيفات</option>
+                    <option value="روايات وأدب">روايات وأدب</option>
+                    <option value="تاريخ وتراث يمني">تاريخ وتراث يمني</option>
+                    <option value="شعر ودواوين">شعر ودواوين</option>
+                    <option value="فكر وفلسفة">فكر وفلسفة</option>
+                    <option value="علوم وأبحاث">علوم وأبحاث</option>
+                    <option value="سير وتراجم">سير وتراجم</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <main class="main-container">
+
+        <!-- 1. تبويب الرفوف الرئيسية والموسوعة -->
+        <section id="shelvesTab" class="tab-content active">
+            
+            <!-- قسم المقترحات الذكية (يعمل بالذكاء الاصطناعي في الخلفية حسب اهتمام المستخدم) -->
+            <div id="aiRecommendationsSection" class="ai-section" style="display:none;">
+                <div class="section-header">
+                    <h3>✨ مقترحات ذكية لك <span class="ai-tag">بناءً على قراءاتك وتقييماتك</span></h3>
+                </div>
+                <div id="aiShelf" class="bookshelf-grid"></div>
+            </div>
+
+            <!-- الرفوف الحية للموسوعة -->
+            <div class="section-header">
+                <h3>🏛️ رفوف الموسوعة الوطنية</h3>
+                <span id="booksCountText" class="count-label">جاري تحميل الكتب...</span>
+            </div>
+
+            <div id="mainBookshelf" class="bookshelf-grid">
+                <!-- تظهر بطاقات الكتب هنا تلقائياً -->
+            </div>
+        </section>
+
+        <!-- 2. تبويب مكتبتي الشخصية -->
+        <section id="myLibraryTab" class="tab-content" style="display:none;">
+            <div class="section-header">
+                <h3>❤️ الكتب المحفوظة في مفضلتي</h3>
+            </div>
+            <div id="savedBooksShelf" class="bookshelf-grid"></div>
+
+            <hr class="divider">
+
+            <div class="section-header">
+                <h3>📤 كتب قمت برفعها والمساهمة بها</h3>
+            </div>
+            <div id="myUploadedBooksShelf" class="bookshelf-grid"></div>
+        </section>
+
+        <!-- 3. تبويب لوحة المراجعة والتحكم (للإدارة) -->
+        <section id="adminTab" class="tab-content" style="display:none;">
+            <div class="admin-header-box">
+                <h3>🛡️ لوحة الفحص والمراجعة واعتماد الكتب</h3>
+                <p>هنا يمكنك فحص الكتب المرفوعة، التحقق من عدم التكرار، واختيار نشرها مع التحميل أو نشرها للموسوعة والمناقشة فقط بدون زر تحميل.</p>
+            </div>
+            <div id="pendingBooksList" class="admin-list">
+                <!-- تظهر الكتب المعلقة للمراجعة هنا -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- نافذة رفع وإضافة كتاب جديد -->
+    <div id="addBookModal" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>📖 المساهمة بإضافة كتاب للموسوعة</h3>
+                <button class="close-btn" id="closeAddModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="notice-box">
+                    تنبيه: الموسوعة مخصصة لتوثيق الكتب اليمنية. سيقوم النظام بفحص الكتاب تلقائياً لمنع التكرار، ثم يحال للمراجعة قبل النشر.
+                </div>
+
+                <label>عنوان الكتاب *</label>
+                <input type="text" id="bookTitleInput" placeholder="مثال: رواية يمنستان">
+
+                <label>اسم المؤلف الثلاثي أو الثنائي *</label>
+                <input type="text" id="bookAuthorInput" placeholder="مثال: أحمد رشاد أحمد">
+
+                <label>تصنيف الكتاب *</label>
+                <select id="bookCategoryInput">
+                    <option value="روايات وأدب">روايات وأدب</option>
+                    <option value="تاريخ وتراث يمني">تاريخ وتراث يمني</option>
+                    <option value="شعر ودواوين">شعر ودواوين</option>
+                    <option value="فكر وفلسفة">فكر وفلسفة</option>
+                    <option value="علوم وأبحاث">علوم وأبحاث</option>
+                    <option value="سير وتراجم">سير وتراجم</option>
+                </select>
+
+                <label>نبذة أو وصف عن الكتاب *</label>
+                <textarea id="bookDescInput" rows="4" placeholder="اكتب نبذة مختصرة تعرف القارئ بمحتوى الكتاب وأهميته..."></textarea>
+
+                <label>رابط الكتاب على جوجل درايف (اختياري - للكتب المتاحة مجاناً)</label>
+                <input type="url" id="bookDriveInput" placeholder="https://drive.google.com/file/d/...">
+
+                <label>صورة غلاف الكتاب *</label>
+                <input type="file" id="bookCoverInput" accept="image/*">
+
+                <div id="uploadStatusMsg" class="status-msg"></div>
+
+                <div class="modal-actions">
+                    <button id="submitBookBtn" class="btn-gold full-width">فحص التكرار وإرسال للمراجعة</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تفاصيل الكتاب والمراجعات والتقييم -->
+    <div id="bookDetailsModal" class="modal-overlay" style="display:none;">
+        <div class="modal-box modal-large">
+            <div class="modal-header">
+                <h3 id="detailModalTitle">تفاصيل الكتاب</h3>
+                <button class="close-btn" id="closeDetailsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="book-detail-layout">
+                    <div class="detail-cover-col">
+                        <img id="detailCover" src="" alt="غلاف الكتاب">
+                        <button id="toggleFavoriteBtn" class="btn-outline full-width">🔖 حفظ في مكتبتي</button>
+                        <div id="downloadActionArea"></div>
+                    </div>
+                    <div class="detail-info-col">
+                        <span id="detailCategory" class="category-badge"></span>
+                        <h2 id="detailTitle"></h2>
+                        <h4 id="detailAuthor"></h4>
+                        <div id="detailRatingSummary" class="rating-summary"></div>
+                        <p id="detailDescription" class="book-desc-text"></p>
+
+                        <hr class="divider">
+
+                        <!-- قسم إضافة تقييم ومراجعة -->
+                        <div class="reviews-section">
+                            <h4>💬 المراجعات والمناقشات الثقافية</h4>
+                            <div id="addReviewBox" class="add-review-box">
+                                <div class="star-selector">
+                                    <span>تقييمك للكتاب:</span>
+                                    <select id="reviewStarsInput">
+                                        <option value="5">⭐⭐⭐⭐⭐ (5/5 ممتاز)</option>
+                                        <option value="4">⭐⭐⭐⭐ (4/5 جيد جداً)</option>
+                                        <option value="3">⭐⭐⭐ (3/5 متوسط)</option>
+                                        <option value="2">⭐⭐ (2/5 مقبول)</option>
+                                        <option value="1">⭐ (1/5 ضعيف)</option>
+                                    </select>
+                                </div>
+                                <textarea id="reviewCommentInput" rows="2" placeholder="شارك رأيك أو مراجعتك النقدية حول هذا الكتاب..."></textarea>
+                                <button id="submitReviewBtn" class="btn-gold">نشر المراجعة</button>
+                            </div>
+                            <div id="reviewsListContainer" class="reviews-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تأكيد التحميل المباشر -->
+    <div id="confirmDownloadModal" class="modal-overlay" style="display:none;">
+        <div class="modal-box modal-small">
+            <div class="modal-header">
+                <h3>📥 تأكيد تحميل الكتاب</h3>
+                <button class="close-btn" id="closeConfirmDownload">&times;</button>
+            </div>
+            <div class="modal-body text-center">
+                <p id="confirmDownloadText" class="confirm-text"></p>
+                <p class="sub-note">سيبدأ التحميل المباشر من جوجل درايف فوراً عند التأكيد.</p>
+                <div class="confirm-actions">
+                    <a id="directDownloadLink" href="#" target="_blank" class="btn-gold">نعم، متأكد (ابدأ التحميل)</a>
+                    <button id="cancelDownloadBtn" class="btn-outline">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر القانوني والتعريفي -->
+    <footer class="main-footer">
+        <div class="footer-content">
+            <h3>موسوعة ومكتبة الحجرية الوطنية</h3>
+            <p>مؤسسة ثقافية غير ربحية تهدف إلى حفظ وتوثيق الإرث الثقافي والأدبي والفكري اليمني، وإتاحته للباحثين والقراء ضمن بيئة تفاعلية تحترم حقوق الملكية الفكرية.</p>
+            <div class="footer-links">
+                <button id="toggleAdminModeBtn" class="admin-secret-btn">⚙️ تفعيل/إخفاء وضع مدير النظام للمراجعة</button>
+            </div>
+            <p class="copyright">© جميع الحقوق محفوظة - موسوعة الحجرية الوطنية</p>
+        </div>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
