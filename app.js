@@ -2,125 +2,121 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// 1. إعدادات فايربيس الخاصة بمشروعك (حجاريا)
+// إعدادات فايربيس (حجاريا)
 const firebaseConfig = {
   apiKey: "AIzaSyBtj65b-J9L7Oxf3iR1EE5tinF5FahVLpw",
   authDomain: "hujariya-1.firebaseapp.com",
   projectId: "hujariya-1",
   storageBucket: "hujariya-1.firebasestorage.app",
   messagingSenderId: "983562756581",
-  appId: "1:983562756581:web:71ede7b120b50af894cf0c",
-  measurementId: "G-ZE0H1NV0X5"
+  appId: "1:983562756581:web:71ede7b120b50af894cf0c"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// مفتاح رفع الأغلفة ImgBB
 const IMGBB_API_KEY = "E9d57b2ba79217bb8bde762b332b7c62".trim().toLowerCase();
-
-// البريد الإلكتروني المعتمد للإدارة المطلقة
-const ADMIN_EMAILS = [
-    "rawialshamal@gmail.com",
-    "a1hmedrashad@gmail.com"
-];
+const ADMIN_EMAILS = ["rawialshamal@gmail.com", "a1hmedrashad@gmail.com"];
 
 function isUserAdmin(user) {
     return user && user.email && ADMIN_EMAILS.includes(user.email.trim().toLowerCase());
 }
 
-// متغيرات الحالة العامة
+// متغيرات النظام
 let currentUser = null;
 let isAdmin = false;
 let allBooks = [];
 let userFavorites = [];
-let currentSelectedBook = null;
+let currentCategory = "all";
 
-// عناصر الواجهة
-const authBtn = document.getElementById("authBtn");
-const openAddModalBtn = document.getElementById("openAddModalBtn");
-const myLibraryTabBtn = document.getElementById("myLibraryTabBtn");
-const adminTabBtn = document.getElementById("adminTabBtn");
-const pendingBadge = document.getElementById("pendingBadge");
-const userProfileArea = document.getElementById("userProfileArea");
-const userAvatar = document.getElementById("userAvatar");
-const userName = document.getElementById("userName");
-const toggleAdminModeBtn = document.getElementById("toggleAdminModeBtn");
+// 1. نظام الوضع الليلي (Dark Mode)
+const darkModeToggle = document.getElementById('darkModeToggle');
+const body = document.body;
 
-// إخفاء زر الفوتر القديم نهائياً لأن الإدارة أصبحت مربوطة بالبريد رسمياً
-if (toggleAdminModeBtn) {
-    toggleAdminModeBtn.style.display = "none";
+// التحقق من الإعداد المحفوظ مسبقاً
+if (localStorage.getItem('hujariya_theme') === 'dark') {
+    body.classList.replace('light-mode', 'dark-mode');
+    darkModeToggle.checked = true;
 }
 
-// دالة تطبيع النصوص العربية لمنع تكرار الكتب بذكاء فائق
-function normalizeArabic(text) {
-    if (!text) return "";
-    return text
-        .trim()
-        .toLowerCase()
-        .replace(/[\u064B-\u065F]/g, "")
-        .replace(/[أإآ]/g, "ا")
-        .replace(/ة/g, "ه")
-        .replace(/ى/g, "ي")
-        .replace(/^(ال|روايه|رواية|كتاب)\s+/g, "")
-        .replace(/\s+/g, " ");
-}
-
-// دالة تحويل رابط جوجل درايف إلى رابط تحميل مباشر
-function getDirectDriveDownloadUrl(url) {
-    if (!url) return "";
-    const matchId = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-    if (matchId && matchId[1]) {
-        return `https://drive.google.com/uc?export=download&id=${matchId[1]}`;
+darkModeToggle.addEventListener('change', () => {
+    if (darkModeToggle.checked) {
+        body.classList.replace('light-mode', 'dark-mode');
+        localStorage.setItem('hujariya_theme', 'dark');
+    } else {
+        body.classList.replace('dark-mode', 'light-mode');
+        localStorage.setItem('hujariya_theme', 'light');
     }
-    return url;
-}
+});
 
-// 2. إدارة تسجيل الدخول والتحقق من صلاحية الإدارة
+// 2. نظام التنقل في الشريط السفلي (Bottom Nav)
+const navItems = document.querySelectorAll('.nav-item');
+const views = document.querySelectorAll('.view-section');
+
+navItems.forEach(item => {
+    item.addEventListener('click', () => {
+        // إزالة التفعيل من كل الأزرار والصفحات
+        navItems.forEach(nav => nav.classList.remove('active'));
+        views.forEach(view => view.classList.remove('active-view'));
+        
+        // تفعيل الزر والصفحة المطلوبة
+        item.classList.add('active');
+        const targetView = document.getElementById(item.getAttribute('data-target'));
+        if(targetView) targetView.classList.add('active-view');
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+});
+
+// 3. إدارة تسجيل الدخول (في صفحة الحساب)
+const authActionBtn = document.getElementById('authActionBtn');
+const profileName = document.getElementById('profileName');
+const profileEmail = document.getElementById('profileEmail');
+const profileAvatar = document.getElementById('profileAvatar');
+const adminNavBtn = document.getElementById('adminNavBtn');
+const adminSettingsGroup = document.getElementById('adminSettingsGroup');
+
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     isAdmin = isUserAdmin(user);
 
     if (user) {
-        authBtn.textContent = "خروج";
-        openAddModalBtn.style.display = "inline-block";
-        myLibraryTabBtn.style.display = "inline-block";
-        userProfileArea.style.display = "flex";
-        userAvatar.src = user.photoURL || "https://via.placeholder.com/40";
-        userName.textContent = isAdmin ? `👑 ${user.displayName} (إدارة)` : user.displayName;
+        authActionBtn.innerHTML = "<i class='bx bx-log-out'></i> تسجيل الخروج";
+        authActionBtn.classList.replace('btn-primary', 'btn-danger');
+        profileName.innerHTML = isAdmin ? `${user.displayName} <i class='bx bxs-badge-check' style='color:var(--accent-color)'></i>` : user.displayName;
+        profileEmail.textContent = user.email;
+        profileAvatar.src = user.photoURL || "https://ui-avatars.com/api/?name=User";
 
-        // إظهار لوحة المراجعة تلقائياً إذا كان البريد من ضمن الإدارة
-        adminTabBtn.style.display = isAdmin ? "inline-block" : "none";
+        adminNavBtn.style.display = isAdmin ? "flex" : "none";
+        adminSettingsGroup.style.display = isAdmin ? "block" : "none";
 
         await loadUserProfileData(user.uid);
     } else {
-        authBtn.textContent = "تسجيل الدخول بجوجل";
-        openAddModalBtn.style.display = "none";
-        myLibraryTabBtn.style.display = "none";
-        adminTabBtn.style.display = "none";
-        userProfileArea.style.display = "none";
+        authActionBtn.innerHTML = "<i class='bx bxl-google'></i> تسجيل الدخول بجوجل";
+        authActionBtn.classList.replace('btn-danger', 'btn-primary');
+        profileName.textContent = "زائر";
+        profileEmail.textContent = "يرجى تسجيل الدخول للوصول لكافة الميزات";
+        profileAvatar.src = "https://ui-avatars.com/api/?name=User&background=random&color=fff";
+        
+        adminNavBtn.style.display = "none";
+        adminSettingsGroup.style.display = "none";
         userFavorites = [];
-
-        // الرجوع للرفوف الرئيسية عند تسجيل الخروج
-        document.querySelector('[data-tab="shelvesTab"]').click();
+        
+        // العودة للرئيسية عند تسجيل الخروج
+        document.querySelector('[data-target="shelvesView"]').click();
     }
     renderAllViews();
 });
 
-authBtn.addEventListener("click", () => {
+authActionBtn.addEventListener('click', () => {
     if (currentUser) {
         signOut(auth);
     } else {
-        const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider).catch(err => {
-            alert("تنبيه: لتشغيل تسجيل الدخول، تأكد من تفعيل Google داخل قسم Authentication في فايربيس، وإضافة رابط موقعك في قائمة Authorized domains.");
-            console.error(err);
-        });
+        signInWithPopup(auth, new GoogleAuthProvider()).catch(console.error);
     }
 });
 
-// حفظ وجلب ملف المستخدم ومفضلاته
 async function loadUserProfileData(uid) {
     try {
         const userRef = doc(db, "users", uid);
@@ -128,155 +124,104 @@ async function loadUserProfileData(uid) {
         if (snap.exists()) {
             userFavorites = snap.data().favorites || [];
         } else {
-            await setDoc(userRef, {
-                name: currentUser.displayName,
-                email: currentUser.email,
-                role: isAdmin ? "admin" : "member",
-                favorites: []
-            });
-            userFavorites = [];
+            await setDoc(userRef, { favorites: [] });
         }
-    } catch (e) {
-        console.error("خطأ في جلب ملف المستخدم:", e);
-    }
+    } catch (e) { console.error(e); }
 }
 
-// 3. التنقل بين التبويبات
-document.querySelectorAll(".nav-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-        const targetId = btn.getAttribute("data-tab");
-        if (targetId === "adminTab" && !isAdmin) return;
+// 4. نظام تبويبات التصنيفات والبحث الذكي
+const catTabs = document.querySelectorAll('.cat-tab');
+const searchInput = document.getElementById('searchInput');
 
-        document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-        document.querySelectorAll(".tab-content").forEach(t => t.style.display = "none");
-        btn.classList.add("active");
-        document.getElementById(targetId).style.display = "block";
+catTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        catTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentCategory = tab.getAttribute('data-cat');
+        renderMainShelves();
+        // تمرير التبويب للمنتصف بسلاسة
+        tab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
     });
 });
 
-// 4. جلب كافة الكتب من قاعدة البيانات
+searchInput.addEventListener('input', renderMainShelves);
+
+// 5. جلب الكتب من فايربيس وعرضها
 async function fetchBooksFromFirestore() {
     try {
         const snap = await getDocs(collection(db, "books"));
-        allBooks = [];
-        snap.forEach(docSnap => {
-            allBooks.push({ id: docSnap.id, ...docSnap.data() });
-        });
+        allBooks = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         allBooks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         renderAllViews();
     } catch (error) {
-        console.error("خطأ في جلب الكتب:", error);
-        document.getElementById("booksCountText").textContent = "يرجى إكمال خطوة لصق قواعد الأمان (Rules) في Firestore Database.";
+        console.error("خطأ جلب الكتب:", error);
     }
 }
 
 function renderAllViews() {
     renderMainShelves();
-    renderAIRecommendations();
-    if (currentUser) {
-        renderMyLibrary();
-    }
-    if (isAdmin) {
-        renderAdminPendingList();
-    }
+    if (currentUser) renderMyLibrary();
+    if (isAdmin) renderAdminList();
 }
 
-// 5. عرض الرفوف الحية والفلترة
+// عرض الرفوف الرئيسية (بحث + تصفية)
 function renderMainShelves() {
-    const searchVal = document.getElementById("searchInput").value.trim().toLowerCase();
-    const categoryVal = document.getElementById("categoryFilter").value;
-    const shelfContainer = document.getElementById("mainBookshelf");
-    shelfContainer.innerHTML = "";
+    const searchVal = searchInput.value.trim().toLowerCase();
+    const shelf = document.getElementById("mainBookshelf");
+    shelf.innerHTML = "";
 
-    const publishedBooks = allBooks.filter(b => b.status === "published_full" || b.status === "published_no_download");
-
-    const filtered = publishedBooks.filter(b => {
+    const published = allBooks.filter(b => b.status === "published_full" || b.status === "published_no_download");
+    
+    const filtered = published.filter(b => {
         const matchSearch = (b.title || "").toLowerCase().includes(searchVal) || (b.author || "").toLowerCase().includes(searchVal);
-        const matchCat = categoryVal === "all" || b.category === categoryVal;
+        const matchCat = currentCategory === "all" || b.category === currentCategory;
         return matchSearch && matchCat;
     });
 
-    document.getElementById("booksCountText").textContent = `إجمالي المؤلفات الموثقة: ${filtered.length} كتاب`;
+    document.getElementById("booksCountText").textContent = `${filtered.length} كتاب`;
 
     if (filtered.length === 0) {
-        shelfContainer.innerHTML = `<p style="grid-column: 1/-1; text-align:center; padding: 40px; color:#666;">لا توجد كتب مطابقة حالياً على هذا الرف. كن أول من يساهم بإضافة كتاب!</p>`;
+        shelf.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 40px; color:var(--text-muted);">لا توجد نتائج مطابقة.</div>`;
         return;
     }
 
-    filtered.forEach(book => {
-        shelfContainer.appendChild(createBookCardElement(book));
-    });
+    filtered.forEach(book => shelf.appendChild(createBookCard(book)));
 }
 
-document.getElementById("searchInput").addEventListener("input", renderMainShelves);
-document.getElementById("categoryFilter").addEventListener("change", renderMainShelves);
-
-// إنشاء بطاقة كتاب بتصميم الرفوف
-function createBookCardElement(book, showStatusBadge = false) {
-    const card = document.createElement("div");
-    card.className = "book-card";
-
-    const avgRating = book.ratingCount > 0 ? (book.ratingSum / book.ratingCount).toFixed(1) : "جديد";
-    const statusText = book.status === "pending" ? "⏳ قيد المراجعة" : 
-                       (book.status === "published_no_download" ? "📖 موسوعي للمناقشة" : "📥 متاح للتحميل");
-
+// تصميم بطاقة الكتاب الحديثة
+function createBookCard(book) {
+    const card = document.createElement('div');
+    card.className = 'book-card';
+    const rating = book.ratingCount > 0 ? (book.ratingSum / book.ratingCount).toFixed(1) : "جديد";
+    
     card.innerHTML = `
-        <div class="book-cover-wrapper">
-            <img src="${book.coverUrl}" alt="${book.title}" loading="lazy">
-            <span class="book-status-ribbon">${showStatusBadge ? statusText : book.category}</span>
-        </div>
-        <h4>${book.title}</h4>
-        <div class="author-name">✍️ ${book.author}</div>
-        <div class="book-card-footer">
-            <span class="stars-display">⭐ ${avgRating} (${book.ratingCount || 0})</span>
-            <span>${book.status === "published_full" && book.downloadLink ? "📥 تحميل" : "💬 مراجعة"}</span>
+        <img src="${book.coverUrl}" alt="${book.title}" class="book-cover" loading="lazy">
+        <div class="book-info">
+            <h4 class="book-title">${book.title}</h4>
+            <div class="book-author"><i class='bx bx-pen'></i> ${book.author}</div>
+            <div class="book-meta">
+                <span class="book-rating"><i class='bx bxs-star'></i> ${rating}</span>
+                <span style="color:var(--accent-color); font-size:0.75rem;">${book.category}</span>
+            </div>
         </div>
     `;
-
-    card.addEventListener("click", () => openBookDetailsModal(book));
+    card.onclick = () => openBookDetails(book);
     return card;
 }
 
-// 6. محرك الذكاء الاصطناعي الخفي للمقترحات الشخصية
-function renderAIRecommendations() {
-    const aiSection = document.getElementById("aiRecommendationsSection");
-    const aiShelf = document.getElementById("aiShelf");
-
-    if (!currentUser || userFavorites.length === 0) {
-        aiSection.style.display = "none";
+// 6. رفع الكتب (المودال العائم)
+const addBookModal = document.getElementById('addBookModal');
+document.getElementById('openAddModalBtn').onclick = () => {
+    if(!currentUser) {
+        alert("يرجى تسجيل الدخول أولاً للمساهمة بكتاب.");
+        document.querySelector('[data-target="profileView"]').click();
         return;
     }
+    addBookModal.style.display = 'flex';
+};
+document.getElementById('closeAddModal').onclick = () => addBookModal.style.display = 'none';
 
-    const favBooks = allBooks.filter(b => userFavorites.includes(b.id));
-    const preferredCategories = {};
-    favBooks.forEach(b => {
-        preferredCategories[b.category] = (preferredCategories[b.category] || 0) + 1;
-    });
-
-    const recommended = allBooks.filter(b => 
-        (b.status === "published_full" || b.status === "published_no_download") &&
-        !userFavorites.includes(b.id) &&
-        preferredCategories[b.category]
-    ).slice(0, 4);
-
-    if (recommended.length === 0) {
-        aiSection.style.display = "none";
-        return;
-    }
-
-    aiSection.style.display = "block";
-    aiShelf.innerHTML = "";
-    recommended.forEach(book => aiShelf.appendChild(createBookCardElement(book)));
-}
-
-// 7. رفع كتاب جديد مع فحص التكرار الذكي
-const addBookModal = document.getElementById("addBookModal");
-document.getElementById("openAddModalBtn").addEventListener("click", () => addBookModal.style.display = "flex");
-document.getElementById("closeAddModal").addEventListener("click", () => addBookModal.style.display = "none");
-
-document.getElementById("submitBookBtn").addEventListener("click", async () => {
-    if (!currentUser) return alert("يرجى تسجيل الدخول أولاً.");
-
+document.getElementById('submitBookBtn').onclick = async () => {
     const title = document.getElementById("bookTitleInput").value.trim();
     const author = document.getElementById("bookAuthorInput").value.trim();
     const category = document.getElementById("bookCategoryInput").value;
@@ -284,394 +229,210 @@ document.getElementById("submitBookBtn").addEventListener("click", async () => {
     const driveLink = document.getElementById("bookDriveInput").value.trim();
     const coverFile = document.getElementById("bookCoverInput").files[0];
     const statusMsg = document.getElementById("uploadStatusMsg");
-    const submitBtn = document.getElementById("submitBookBtn");
-
+    
     if (!title || !author || !desc || !coverFile) {
-        statusMsg.style.color = "#c92a2a";
-        statusMsg.textContent = "⚠️ يرجى تعبئة جميع الحقول الأساسية وإرفاق صورة الغلاف.";
+        statusMsg.innerHTML = "<i class='bx bx-error-circle'></i> يرجى تعبئة الحقول الأساسية وإرفاق الغلاف.";
+        statusMsg.style.color = "var(--danger-color)";
         return;
     }
 
-    submitBtn.disabled = true;
-    statusMsg.style.color = "#1b302b";
-    statusMsg.textContent = "🔍 جاري فحص قاعدة البيانات للتحقق من عدم تكرار الكتاب...";
-
-    const normTitle = normalizeArabic(title);
-    const normAuthor = normalizeArabic(author);
-
-    const duplicateBook = allBooks.find(b => 
-        normalizeArabic(b.title) === normTitle && normalizeArabic(b.author) === normAuthor
-    );
-
-    if (duplicateBook) {
-        statusMsg.style.color = "#c92a2a";
-        statusMsg.textContent = `❌ مرفوض: كتاب «${title}» للمؤلف «${author}» موجود مسبقاً في الموسوعة!`;
-        submitBtn.disabled = false;
-        return;
-    }
+    statusMsg.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> جاري الرفع ومعالجة البيانات...";
+    statusMsg.style.color = "var(--text-main)";
 
     try {
-        statusMsg.textContent = "🖼️ جاري رفع غلاف الكتاب بأعلى جودة...";
         const formData = new FormData();
         formData.append("image", coverFile);
-
-        const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-            method: "POST",
-            body: formData
-        });
+        const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
         const imgData = await imgRes.json();
 
-        if (!imgData.success) {
-            throw new Error("فشل رفع الغلاف، تأكد من صلاحية مفتاح ImgBB.");
-        }
+        if (!imgData.success) throw new Error("فشل رفع الغلاف.");
 
-        // إذا كان الرافع هو المدير نفسه، يُنشر الكتاب فوراً، وإلا يحال للمراجعة
         const initialStatus = isAdmin ? (driveLink ? "published_full" : "published_no_download") : "pending";
 
-        statusMsg.textContent = isAdmin ? "☁️ جاري النشر الفوري بصلاحية الإدارة..." : "☁️ جاري حفظ الكتاب وإحالته لقسم المراجعة...";
-
         await addDoc(collection(db, "books"), {
-            title,
-            author,
-            category,
-            description: desc,
-            downloadLink: driveLink,
-            coverUrl: imgData.data.url,
-            status: initialStatus,
-            addedByUid: currentUser.uid,
-            addedByName: currentUser.displayName,
-            addedByEmail: currentUser.email,
-            ratingSum: 0,
-            ratingCount: 0,
-            createdAt: Date.now()
+            title, author, category, description: desc, downloadLink: driveLink,
+            coverUrl: imgData.data.url, status: initialStatus,
+            addedByUid: currentUser.uid, addedByName: currentUser.displayName,
+            ratingSum: 0, ratingCount: 0, createdAt: Date.now()
         });
 
-        statusMsg.style.color = "#2b8a3e";
-        statusMsg.textContent = isAdmin ? "✅ تم نشر الكتاب مباشرة على الرفوف!" : "✅ تم رفع الكتاب بنجاح! سيظهر على الرفوف فور اعتماده من الإدارة.";
-
-        document.getElementById("bookTitleInput").value = "";
-        document.getElementById("bookAuthorInput").value = "";
-        document.getElementById("bookDescInput").value = "";
-        document.getElementById("bookDriveInput").value = "";
-        document.getElementById("bookCoverInput").value = "";
-
-        await fetchBooksFromFirestore();
-
+        statusMsg.innerHTML = isAdmin ? "<i class='bx bx-check-circle'></i> تم النشر بنجاح!" : "<i class='bx bx-check-circle'></i> تم الإرسال للمراجعة بنجاح!";
+        statusMsg.style.color = "#28a745";
+        
         setTimeout(() => {
-            addBookModal.style.display = "none";
-            statusMsg.textContent = "";
-            submitBtn.disabled = false;
-        }, 1600);
+            addBookModal.style.display = 'none';
+            statusMsg.innerHTML = "";
+            fetchBooksFromFirestore();
+        }, 1500);
 
-    } catch (err) {
-        console.error(err);
-        statusMsg.style.color = "#c92a2a";
-        statusMsg.textContent = "❌ حدث خطأ أثناء الرفع: " + err.message;
-        submitBtn.disabled = false;
+    } catch (e) {
+        statusMsg.innerHTML = "<i class='bx bx-error-circle'></i> حدث خطأ، حاول مجدداً.";
+        statusMsg.style.color = "var(--danger-color)";
     }
-});
+};
 
-// 8. نافذة تفاصيل الكتاب + أدوات الإدارة المطلقة للتعديل والحذف
-const bookDetailsModal = document.getElementById("bookDetailsModal");
-document.getElementById("closeDetailsModal").addEventListener("click", () => bookDetailsModal.style.display = "none");
+// 7. عرض تفاصيل الكتاب
+const bookDetailsModal = document.getElementById('bookDetailsModal');
+document.getElementById('closeDetailsModal').onclick = () => bookDetailsModal.style.display = 'none';
 
-async function openBookDetailsModal(book) {
-    currentSelectedBook = book;
-    document.getElementById("detailCover").src = book.coverUrl;
-    document.getElementById("detailCategory").textContent = book.category;
-    document.getElementById("detailTitle").textContent = book.title;
-    document.getElementById("detailAuthor").textContent = `المؤلف: ${book.author}`;
-    document.getElementById("detailDescription").textContent = book.description;
-
-    const avg = book.ratingCount > 0 ? (book.ratingSum / book.ratingCount).toFixed(1) : "لا توجد تقييمات بعد";
-    document.getElementById("detailRatingSummary").innerHTML = `<strong>⭐ التقييم العام:</strong> ${avg} (${book.ratingCount || 0} تقييم)`;
-
-    const favBtn = document.getElementById("toggleFavoriteBtn");
+function openBookDetails(book) {
     const isFav = userFavorites.includes(book.id);
-    favBtn.textContent = isFav ? "✅ محفوظ في مكتبتي (إزالة)" : "🔖 حفظ في مكتبتي";
+    const body = document.querySelector('.book-details-body');
+    
+    let html = `
+        <div class="book-details-header">
+            <img src="${book.coverUrl}" class="book-details-cover">
+            <div class="book-details-info">
+                <span class="book-badge">${book.category}</span>
+                <h2>${book.title}</h2>
+                <p><i class='bx bx-pen'></i> ${book.author}</p>
+                <p><i class='bx bxs-star' style="color:#f39c12"></i> ${book.ratingCount > 0 ? (book.ratingSum/book.ratingCount).toFixed(1) : 'جديد'}</p>
+            </div>
+        </div>
+        <div class="book-details-desc">${book.description}</div>
+        
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <button id="favActionBtn" class="btn-primary" style="flex:1; background:${isFav ? 'var(--danger-color)' : 'var(--primary-color)'}">
+                <i class='bx ${isFav ? 'bx-bookmark-minus' : 'bx-bookmark-plus'}'></i> ${isFav ? 'إزالة من مكتبتي' : 'حفظ في مكتبتي'}
+            </button>
+            ${book.status === 'published_full' && book.downloadLink ? 
+            `<a href="${getDirectDriveDownloadUrl(book.downloadLink)}" target="_blank" class="btn-primary" style="flex:1; background:var(--accent-color); text-decoration:none;">
+                <i class='bx bx-cloud-download'></i> تحميل
+            </a>` : 
+            `<div class="btn-primary" style="flex:1; background:#6c757d; cursor:not-allowed; opacity:0.8;">
+                <i class='bx bx-lock-alt'></i> للمراجعة فقط
+            </div>`}
+        </div>
+    `;
 
-    const downloadArea = document.getElementById("downloadActionArea");
-    downloadArea.innerHTML = "";
-
-    if (book.status === "published_full" && book.downloadLink) {
-        const dlBtn = document.createElement("button");
-        dlBtn.className = "btn-gold full-width";
-        dlBtn.textContent = "📥 تحميل الكتاب (PDF)";
-        dlBtn.onclick = () => openConfirmDownloadModal(book);
-        downloadArea.appendChild(dlBtn);
-    } else {
-        downloadArea.innerHTML = `
-            <div class="no-download-box">
-                🔒 هذا الكتاب مُدرج في الموسوعة الوطنية للتوثيق والمراجعة والمناقشة فقط (حفاظاً على حقوق المؤلف والناشر).
+    // لوحة تحكم الإدارة داخل تفاصيل الكتاب
+    if (isAdmin) {
+        html += `
+            <div style="margin-top:20px; padding:15px; border:1px dashed var(--danger-color); border-radius:10px;">
+                <h4 style="color:var(--danger-color); margin-bottom:10px;"><i class='bx bx-shield-quarter'></i> أدوات الإدارة</h4>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <button class="btn-primary" style="background:#000;" id="adminToggleStatus">
+                        <i class='bx bx-transfer'></i> ${book.status === 'published_full' ? 'تحويل لموسوعي (بدون تحميل)' : 'تفعيل التحميل المباشر'}
+                    </button>
+                    <button class="btn-danger" id="adminDeleteBook"><i class='bx bx-trash'></i> حذف الكتاب نهائياً</button>
+                </div>
             </div>
         `;
     }
 
-    // إظهار لوحة التحكم والتعديل المباشر داخل الكتاب للإدارة فقط
-    if (isAdmin) {
-        const adminControlBox = document.createElement("div");
-        adminControlBox.style.cssText = "margin-top:15px; padding:12px; background:#fff9db; border:1px solid #f08c00; border-radius:8px; text-align:right; font-size:0.85rem;";
-        adminControlBox.innerHTML = `
-            <strong style="display:block; margin-bottom:8px; color:#b45309;">👑 صلاحيات الإدارة المطلقة:</strong>
-            <button id="adminEditBookBtn" style="width:100%; margin-bottom:6px; padding:7px; background:#1b302b; color:white; border:none; border-radius:5px; cursor:pointer; font-family:inherit; font-weight:700;">✏️ تعديل بيانات الكتاب أو الرابط</button>
-            <button id="adminToggleDlBtn" style="width:100%; margin-bottom:6px; padding:7px; background:#e67700; color:white; border:none; border-radius:5px; cursor:pointer; font-family:inherit; font-weight:700;">
-                ${book.status === "published_full" ? "🔒 إيقاف التحميل (تحويل لموسوعي فقط)" : "🔓 تفعيل زر التحميل المباشر"}
-            </button>
-            <button id="adminDeleteBookBtn" style="width:100%; padding:7px; background:#c92a2a; color:white; border:none; border-radius:5px; cursor:pointer; font-family:inherit; font-weight:700;">🗑️ حذف الكتاب نهائياً</button>
-        `;
-        downloadArea.appendChild(adminControlBox);
+    body.innerHTML = html;
+    
+    // أحداث أزرار التفاصيل
+    document.getElementById('favActionBtn').onclick = async () => {
+        if (!currentUser) return alert("سجل دخولك أولاً!");
+        if (isFav) userFavorites = userFavorites.filter(id => id !== book.id);
+        else userFavorites.push(book.id);
+        await updateDoc(doc(db, "users", currentUser.uid), { favorites: userFavorites });
+        openBookDetails(book); // تحديث الواجهة
+        renderAllViews();
+    };
 
-        // تعديل بيانات الكتاب بالكامل
-        adminControlBox.querySelector("#adminEditBookBtn").onclick = async () => {
-            const newTitle = prompt("تعديل عنوان الكتاب:", book.title);
-            if (newTitle === null) return;
-            const newAuthor = prompt("تعديل اسم المؤلف:", book.author);
-            if (newAuthor === null) return;
-            const newCategory = prompt("تعديل التصنيف:", book.category);
-            if (newCategory === null) return;
-            const newDesc = prompt("تعديل نبذة الكتاب:", book.description);
-            if (newDesc === null) return;
-            const newLink = prompt("تعديل رابط جوجل درايف (اتركه فارغاً لإلغاء الرابط):", book.downloadLink || "");
-            if (newLink === null) return;
-
-            await updateDoc(doc(db, "books", book.id), {
-                title: newTitle.trim() || book.title,
-                author: newAuthor.trim() || book.author,
-                category: newCategory.trim() || book.category,
-                description: newDesc.trim() || book.description,
-                downloadLink: newLink.trim(),
-                status: newLink.trim() ? "published_full" : "published_no_download"
-            });
-
-            await fetchBooksFromFirestore();
-            const updated = allBooks.find(b => b.id === book.id);
-            if (updated) openBookDetailsModal(updated);
+    if(isAdmin) {
+        document.getElementById('adminToggleStatus').onclick = async () => {
+            const newStatus = book.status === 'published_full' ? 'published_no_download' : 'published_full';
+            await updateDoc(doc(db, "books", book.id), { status: newStatus });
+            bookDetailsModal.style.display = 'none';
+            fetchBooksFromFirestore();
         };
-
-        // تبديل حالة التحميل بنقرة واحدة
-        adminControlBox.querySelector("#adminToggleDlBtn").onclick = async () => {
-            if (book.status === "published_full") {
-                await updateDoc(doc(db, "books", book.id), { status: "published_no_download" });
-            } else {
-                const linkToUse = book.downloadLink || prompt("أدخل رابط جوجل درايف لتفعيل التحميل:");
-                if (!linkToUse) return;
-                await updateDoc(doc(db, "books", book.id), {
-                    status: "published_full",
-                    downloadLink: linkToUse.trim()
-                });
-            }
-            await fetchBooksFromFirestore();
-            const updated = allBooks.find(b => b.id === book.id);
-            if (updated) openBookDetailsModal(updated);
-        };
-
-        // حذف الكتاب نهائياً
-        adminControlBox.querySelector("#adminDeleteBookBtn").onclick = async () => {
-            if (confirm(`هل أنت متأكد من الحذف النهائي لكتاب «${book.title}»؟`)) {
+        document.getElementById('adminDeleteBook').onclick = async () => {
+            if(confirm('متأكد من الحذف؟')) {
                 await deleteDoc(doc(db, "books", book.id));
-                bookDetailsModal.style.display = "none";
-                await fetchBooksFromFirestore();
+                bookDetailsModal.style.display = 'none';
+                fetchBooksFromFirestore();
             }
         };
     }
 
-    bookDetailsModal.style.display = "flex";
-    loadBookReviews(book.id);
+    bookDetailsModal.style.display = 'flex';
 }
 
-// نافذة تأكيد التحميل المباشر من جوجل درايف
-const confirmDownloadModal = document.getElementById("confirmDownloadModal");
-function openConfirmDownloadModal(book) {
-    document.getElementById("confirmDownloadText").textContent = `هل أنت متأكد من تحميل كتاب «${book.title}» للمؤلف ${book.author}؟`;
-    document.getElementById("directDownloadLink").href = getDirectDriveDownloadUrl(book.downloadLink);
-    confirmDownloadModal.style.display = "flex";
+function getDirectDriveDownloadUrl(url) {
+    if (!url) return "";
+    const matchId = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+    if (matchId && matchId[1]) return `https://drive.google.com/uc?export=download&id=${matchId[1]}`;
+    return url;
 }
 
-document.getElementById("closeConfirmDownload").addEventListener("click", () => confirmDownloadModal.style.display = "none");
-document.getElementById("cancelDownloadBtn").addEventListener("click", () => confirmDownloadModal.style.display = "none");
-document.getElementById("directDownloadLink").addEventListener("click", () => {
-    setTimeout(() => confirmDownloadModal.style.display = "none", 500);
-});
-
-// حفظ/إزالة الكتاب من "مكتبتي"
-document.getElementById("toggleFavoriteBtn").addEventListener("click", async () => {
-    if (!currentUser || !currentSelectedBook) {
-        alert("يرجى تسجيل الدخول بحسابك لحفظ الكتب في مكتبتك الخاصة.");
+// 8. مكتبتي (حفظ)
+function renderMyLibrary() {
+    const shelf = document.getElementById("savedBooksShelf");
+    shelf.innerHTML = "";
+    const favs = allBooks.filter(b => userFavorites.includes(b.id));
+    
+    if (favs.length === 0) {
+        shelf.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">لم تحفظ أي كتاب بعد.</div>`;
         return;
     }
-    const bookId = currentSelectedBook.id;
-    if (userFavorites.includes(bookId)) {
-        userFavorites = userFavorites.filter(id => id !== bookId);
-    } else {
-        userFavorites.push(bookId);
-    }
-
-    await updateDoc(doc(db, "users", currentUser.uid), { favorites: userFavorites });
-    openBookDetailsModal(currentSelectedBook);
-    renderAllViews();
-});
-
-// نشر تقييم ومراجعة للكتاب
-document.getElementById("submitReviewBtn").addEventListener("click", async () => {
-    if (!currentUser) return alert("يرجى تسجيل الدخول لإضافة تقييم أو مناقشة.");
-    if (!currentSelectedBook) return;
-
-    const stars = parseInt(document.getElementById("reviewStarsInput").value, 10);
-    const comment = document.getElementById("reviewCommentInput").value.trim();
-
-    if (!comment) return alert("يرجى كتابة مراجعتك أو رأيك حول الكتاب.");
-
-    try {
-        await addDoc(collection(db, "reviews"), {
-            bookId: currentSelectedBook.id,
-            userId: currentUser.uid,
-            userName: currentUser.displayName,
-            stars,
-            comment,
-            createdAt: Date.now()
-        });
-
-        const newSum = (currentSelectedBook.ratingSum || 0) + stars;
-        const newCount = (currentSelectedBook.ratingCount || 0) + 1;
-        await updateDoc(doc(db, "books", currentSelectedBook.id), {
-            ratingSum: newSum,
-            ratingCount: newCount
-        });
-
-        currentSelectedBook.ratingSum = newSum;
-        currentSelectedBook.ratingCount = newCount;
-        document.getElementById("reviewCommentInput").value = "";
-
-        await fetchBooksFromFirestore();
-        openBookDetailsModal(currentSelectedBook);
-    } catch (e) {
-        console.error("خطأ في نشر التقييم:", e);
-    }
-});
-
-async function loadBookReviews(bookId) {
-    const container = document.getElementById("reviewsListContainer");
-    container.innerHTML = "جاري تحميل المراجعات...";
-    try {
-        const snap = await getDocs(collection(db, "reviews"));
-        const bookReviews = [];
-        snap.forEach(d => {
-            if (d.data().bookId === bookId) bookReviews.push({ id: d.id, ...d.data() });
-        });
-        bookReviews.sort((a, b) => b.createdAt - a.createdAt);
-
-        if (bookReviews.length === 0) {
-            container.innerHTML = `<p style="color:#777; font-size:0.9rem;">لا توجد مراجعات بعد. افتح باب النقاش وكن أول من يقيّم هذا الكتاب!</p>`;
-            return;
-        }
-
-        container.innerHTML = "";
-        bookReviews.forEach(r => {
-            const div = document.createElement("div");
-            div.className = "review-item";
-            div.innerHTML = `
-                <div class="review-item-header">
-                    <span>👤 ${r.userName}</span>
-                    <div>
-                        <span>${"⭐".repeat(r.stars)}</span>
-                        ${isAdmin ? `<button data-rid="${r.id}" class="del-review-btn" style="background:none; border:none; color:#c92a2a; cursor:pointer; margin-right:8px; font-weight:bold;">🗑️ حذف</button>` : ""}
-                    </div>
-                </div>
-                <p style="font-size:0.92rem; margin-top:4px;">${r.comment}</p>
-            `;
-
-            if (isAdmin) {
-                div.querySelector(".del-review-btn").onclick = async () => {
-                    if (confirm("حذف هذه المراجعة؟")) {
-                        await deleteDoc(doc(db, "reviews", r.id));
-                        loadBookReviews(bookId);
-                    }
-                };
-            }
-
-            container.appendChild(div);
-        });
-    } catch (e) {
-        container.innerHTML = "تعذر تحميل المراجعات.";
-    }
+    favs.forEach(b => shelf.appendChild(createBookCard(b)));
 }
 
-// 9. عرض تبويب "مكتبتي"
-function renderMyLibrary() {
-    const savedShelf = document.getElementById("savedBooksShelf");
-    const myUploadedShelf = document.getElementById("myUploadedBooksShelf");
-    savedShelf.innerHTML = "";
-    myUploadedShelf.innerHTML = "";
+// 9. لوحة الإدارة
+document.getElementById('goToAdminPanelBtn').onclick = () => document.getElementById('adminNavBtn').click();
 
-    const favBooks = allBooks.filter(b => userFavorites.includes(b.id));
-    if (favBooks.length === 0) {
-        savedShelf.innerHTML = `<p style="color:#666;">لم تقم بحفظ أي كتاب في مفضلتك بعد.</p>`;
-    } else {
-        favBooks.forEach(b => savedShelf.appendChild(createBookCardElement(b)));
-    }
-
-    const uploadedBooks = allBooks.filter(b => b.addedByUid === currentUser.uid);
-    if (uploadedBooks.length === 0) {
-        myUploadedShelf.innerHTML = `<p style="color:#666;">لم تقم برفع أي كتاب للموسوعة حتى الآن.</p>`;
-    } else {
-        uploadedBooks.forEach(b => myUploadedShelf.appendChild(createBookCardElement(b, true)));
-    }
-}
-
-// 10. لوحة المراجعة والتحكم للإدارة (Admin Review Panel)
-function renderAdminPendingList() {
+function renderAdminList() {
     const pendingBooks = allBooks.filter(b => b.status === "pending");
-    pendingBadge.textContent = pendingBooks.length;
-    const listContainer = document.getElementById("pendingBooksList");
-    listContainer.innerHTML = "";
+    document.getElementById("pendingBadge").textContent = pendingBooks.length;
+    const list = document.getElementById("pendingBooksList");
+    list.innerHTML = "";
 
     if (pendingBooks.length === 0) {
-        listContainer.innerHTML = `<p style="text-align:center; padding:30px; background:white; border-radius:10px;">🎉 لا توجد كتب معلقة حالياً، تم فحص ومراجعة جميع الكتب!</p>`;
+        list.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">لا توجد طلبات جديدة.</div>`;
         return;
     }
 
     pendingBooks.forEach(book => {
-        const item = document.createElement("div");
-        item.className = "admin-card";
+        const item = document.createElement('div');
+        item.style.cssText = "display:flex; gap:15px; background:var(--surface-color); padding:15px; border-radius:10px; margin-bottom:15px; box-shadow:var(--shadow-sm); border:1px solid var(--border-color);";
         item.innerHTML = `
-            <img src="${book.coverUrl}" alt="${book.title}">
-            <div class="admin-card-info">
-                <span class="category-badge">${book.category}</span>
-                <h4>${book.title}</h4>
-                <p><strong>المؤلف:</strong> ${book.author} | <strong>رُفع بواسطة:</strong> ${book.addedByName || "مستخدم"} (${book.addedByEmail || ""})</p>
-                <p style="font-size:0.88rem; color:#555; margin:6px 0;">${book.description}</p>
-                <p style="font-size:0.85rem;">
-                    <strong>رابط درايف المرفق:</strong> 
-                    ${book.downloadLink ? `<a href="${book.downloadLink}" target="_blank">فحص الرابط</a>` : "لا يوجد رابط مرفق"}
-                </p>
-            </div>
-            <div class="admin-card-actions">
-                <button class="btn-approve-full">✅ نشر كامل (مع زر التحميل)</button>
-                <button class="btn-approve-nodownload">🛡️ نشر للموسوعة فقط (إلغاء التحميل)</button>
-                <button class="btn-reject">🗑️ رفض وحذف الكتاب</button>
+            <img src="${book.coverUrl}" style="width:70px; height:100px; object-fit:cover; border-radius:6px;">
+            <div style="flex:1;">
+                <h4 style="margin-bottom:5px; color:var(--text-main);">${book.title}</h4>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">${book.author} | رفع بواسطة: ${book.addedByName}</p>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="btn-primary approve-full" style="padding:6px 12px; font-size:0.8rem;"><i class='bx bx-check'></i> نشر بتحميل</button>
+                    <button class="btn-primary approve-no-dl" style="padding:6px 12px; font-size:0.8rem; background:var(--accent-color);"><i class='bx bx-book-open'></i> موسوعي فقط</button>
+                    <button class="btn-danger reject-book" style="padding:6px 12px; font-size:0.8rem;"><i class='bx bx-trash'></i> رفض</button>
+                </div>
             </div>
         `;
 
-        item.querySelector(".btn-approve-full").onclick = async () => {
+        item.querySelector('.approve-full').onclick = async () => {
             await updateDoc(doc(db, "books", book.id), { status: "published_full" });
             fetchBooksFromFirestore();
         };
-
-        item.querySelector(".btn-approve-nodownload").onclick = async () => {
+        item.querySelector('.approve-no-dl').onclick = async () => {
             await updateDoc(doc(db, "books", book.id), { status: "published_no_download", downloadLink: "" });
             fetchBooksFromFirestore();
         };
-
-        item.querySelector(".btn-reject").onclick = async () => {
-            if (confirm(`هل أنت متأكد من حذف ورفض كتاب «${book.title}»؟`)) {
+        item.querySelector('.reject-book').onclick = async () => {
+            if(confirm("رفض وحذف الكتاب؟")) {
                 await deleteDoc(doc(db, "books", book.id));
                 fetchBooksFromFirestore();
             }
         };
-
-        listContainer.appendChild(item);
+        list.appendChild(item);
     });
 }
 
-// تشغيل النظام عند فتح الصفحة
+// 10. إعداد تثبيت التطبيق (PWA)
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const installBtn = document.getElementById('installAppBtn');
+    installBtn.style.display = 'flex';
+    installBtn.addEventListener('click', async () => {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') installBtn.style.display = 'none';
+        deferredPrompt = null;
+    });
+});
+
+// بدء التشغيل
 fetchBooksFromFirestore();
