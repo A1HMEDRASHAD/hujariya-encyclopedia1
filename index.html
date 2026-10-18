@@ -3,178 +3,295 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>موسوعة الحجرية | المكتبة الوطنية</title>
-    
-    <!-- خطوط عربية احترافية -->
+    <title>موسوعة الحجرية | المكتبة الوطنية لتوثيق المؤلفات اليمنية</title>
+
+    <!-- خطوط عربية أصيلة واحترافية -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    
-    <!-- مكتبة أيقونات Boxicons (احترافية وخفيفة) -->
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    
+
+    <!-- مكتبة أيقونات RemixIcon العالمية (مضمونة ولا تتأثر بخطوط النصوص) -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+
     <link rel="stylesheet" href="style.css">
-    
-    <!-- إعدادات تطبيق الويب (PWA) -->
-    <meta name="theme-color" content="#1b302b">
+
+    <meta name="theme-color" content="#162925">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body class="light-mode">
 
-    <!-- الهيدر (الشعار والبحث والتصنيفات) -->
-    <header class="main-header">
-        <div class="top-bar">
-            <div class="brand">
-                <img src="https://ibb.co/4wfWtyZ7" alt="شعار موسوعة الحجرية" class="brand-logo">
-                <div class="brand-text">
+    <!-- شريط الهوية الوطنية غير الربحية -->
+    <div class="national-ribbon">
+        <i class="ri-government-line"></i>
+        <span>مؤسسة وطنية ثقافية غير ربحية لتوثيق المؤلفات والكتّاب اليمنيين</span>
+    </div>
+
+    <!-- الهيدر الرئيسي الثابت -->
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="brand-identity">
+                <div class="logo-box" id="brandLogoContainer">
+                    <!-- شعار الحجرية المدمج بدقة عالية (ويقبل التحديث بصورتك من الإعدادات) -->
+                    <img id="siteLogoImg" src="" alt="شعار الحجرية" style="display:none;">
+                    <svg id="siteLogoSvg" viewBox="0 0 120 120" class="hujariya-svg">
+                        <circle cx="60" cy="54" r="38" fill="none" stroke="#c28e48" stroke-width="4.5"/>
+                        <path d="M44 28 L44 48 L36 55 L36 68 L84 68 L84 52 L75 48 L75 34 L63 30 L63 22 L52 20 Z" fill="#1b302b"/>
+                        <rect x="55" y="26" width="4" height="8" fill="#ffffff" rx="1"/>
+                        <rect x="47" y="36" width="3.5" height="7" fill="#ffffff" rx="1"/>
+                        <rect x="67" y="38" width="3.5" height="8" fill="#ffffff" rx="1"/>
+                        <path d="M22 72 Q42 66 60 78 Q78 66 98 72 L102 82 Q78 74 60 88 Q42 74 18 82 Z" fill="#1b302b"/>
+                        <path d="M16 86 Q40 78 60 93 Q80 78 104 86 L107 95 Q80 86 60 102 Q40 86 13 95 Z" fill="#c28e48"/>
+                    </svg>
+                </div>
+                <div class="brand-titles">
                     <h1>موسوعة الحجرية</h1>
-                    <p>المكتبة الوطنية الرقمية</p>
+                    <p>المكتبة الوطنية الرقمية اليمنية</p>
                 </div>
             </div>
-            <!-- أيقونة الإشعارات أو التنبيهات (اختياري للمستقبل) -->
-            <button class="icon-btn"><i class='bx bx-bell'></i></button>
-        </div>
 
-        <div class="search-container">
-            <div class="search-box">
-                <i class='bx bx-search search-icon'></i>
-                <input type="text" id="searchInput" placeholder="ابحث عن كتاب أو مؤلف يمني...">
+            <div class="header-quick-actions">
+                <button class="icon-circle-btn" id="quickThemeBtn" title="تبديل المظهر">
+                    <i class="ri-contrast-2-line"></i>
+                </button>
             </div>
         </div>
 
-        <!-- تبويبات التصنيفات (تمرير سلس) -->
-        <div class="categories-scroll-wrapper">
-            <div class="categories-tabs" id="categoriesTabs">
-                <button class="cat-tab active" data-cat="all">الكل</button>
-                <button class="cat-tab" data-cat="روايات وأدب">روايات وأدب</button>
-                <button class="cat-tab" data-cat="تاريخ وتراث يمني">تاريخ وتراث</button>
-                <button class="cat-tab" data-cat="شعر ودواوين">شعر ودواوين</button>
-                <button class="cat-tab" data-cat="فكر وفلسفة">فكر وفلسفة</button>
-                <button class="cat-tab" data-cat="علوم وأبحاث">علوم وأبحاث</button>
-                <button class="cat-tab" data-cat="سير وتراجم">سير وتراجم</button>
+        <!-- شريط البحث الذكي -->
+        <div class="search-section">
+            <div class="smart-search-bar">
+                <i class="ri-search-2-line search-lead-icon"></i>
+                <input type="text" id="searchInput" placeholder="ابحث بعنوان الكتاب، اسم المؤلف، أو الكلمات المفتاحية...">
+                <button id="clearSearchBtn" class="clear-search-btn" style="display:none;">
+                    <i class="ri-close-circle-fill"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- تبويبات التصنيفات بتمرير أفقي سلس كاليوتيوب -->
+        <div class="categories-strip">
+            <div class="categories-track" id="categoriesTabs">
+                <button class="cat-pill active" data-cat="all"><i class="ri-apps-2-line"></i> الكل</button>
+                <button class="cat-pill" data-cat="روايات وأدب"><i class="ri-book-read-line"></i> روايات وأدب</button>
+                <button class="cat-pill" data-cat="تاريخ وتراث يمني"><i class="ri-ancient-gate-line"></i> تاريخ وتراث يمني</button>
+                <button class="cat-pill" data-cat="شعر ودواوين"><i class="ri-quill-pen-line"></i> شعر ودواوين</button>
+                <button class="cat-pill" data-cat="فكر وفلسفة"><i class="ri-lightbulb-flash-line"></i> فكر وفلسفة</button>
+                <button class="cat-pill" data-cat="علوم وأبحاث"><i class="ri-microscope-line"></i> علوم وأبحاث</button>
+                <button class="cat-pill" data-cat="سير وتراجم"><i class="ri-user-star-line"></i> سير وتراجم</button>
             </div>
         </div>
     </header>
 
-    <!-- المحتوى الرئيسي للموسوعة -->
-    <main class="main-content">
-        
-        <!-- صفحة الرفوف (الرئيسية) -->
-        <section id="shelvesView" class="view-section active-view">
-            <div class="section-title">
-                <h3><i class='bx bx-book-open'></i> الرفوف الوطنية</h3>
-                <span id="booksCountText" class="count-badge">0 كتاب</span>
-            </div>
-            <div id="mainBookshelf" class="bookshelf-grid">
-                <!-- الكتب تظهر هنا -->
-            </div>
-        </section>
+    <!-- المحتوى الرئيسي -->
+    <main class="app-container">
 
-        <!-- صفحة مكتبتي -->
-        <section id="myLibraryView" class="view-section">
-            <div class="section-title">
-                <h3><i class='bx bx-bookmark-heart'></i> مكتبتي الخاصة</h3>
-            </div>
-            <div id="savedBooksShelf" class="bookshelf-grid">
-                <!-- الكتب المحفوظة تظهر هنا -->
-            </div>
-        </section>
+        <!-- 1. واجهة الرفوف الرئيسية والموسوعة -->
+        <section id="shelvesView" class="view-page active-page">
 
-        <!-- صفحة الحساب والإعدادات -->
-        <section id="profileView" class="view-section">
-            <div class="profile-header">
-                <img id="profileAvatar" src="https://ui-avatars.com/api/?name=User&background=random&color=fff" alt="الصورة الشخصية" class="avatar-large">
-                <h2 id="profileName">زائر</h2>
-                <p id="profileEmail" class="text-muted">يرجى تسجيل الدخول</p>
-                <button id="authActionBtn" class="btn-primary mt-3"><i class='bx bxl-google'></i> تسجيل الدخول بجوجل</button>
+            <!-- بطاقة إحصائيات الموسوعة الوطنية -->
+            <div class="stats-banner">
+                <div class="stat-box">
+                    <span class="stat-num" id="statTotalBooks">0</span>
+                    <span class="stat-label">مؤلف موثق</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-box">
+                    <span class="stat-num" id="statTotalAuthors">0</span>
+                    <span class="stat-label">كاتب ومؤلف</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-box">
+                    <span class="stat-num" id="statTotalReviews">0</span>
+                    <span class="stat-label">مراجعة ونقاش</span>
+                </div>
             </div>
 
-            <div class="settings-group mt-4">
-                <h4><i class='bx bx-cog'></i> إعدادات التطبيق</h4>
-                <div class="setting-item">
-                    <div class="setting-info">
-                        <i class='bx bx-moon'></i>
-                        <span>الوضع الليلي</span>
+            <!-- رف المقترحات الذكية (يعمل بالذكاء الاصطناعي بالخلفية) -->
+            <div id="aiRecommendationsBox" class="ai-shelf-wrapper" style="display:none;">
+                <div class="shelf-header">
+                    <div class="shelf-title">
+                        <i class="ri-sparkling-2-fill" style="color:var(--gold);"></i>
+                        <h3>مقترحات ذكية تناسب ذائقتك</h3>
                     </div>
-                    <label class="toggle-switch">
+                    <span class="ai-badge">ذكاء الحجرية</span>
+                </div>
+                <div id="aiBookshelf" class="books-grid"></div>
+            </div>
+
+            <!-- الرفوف الوطنية الحية -->
+            <div class="shelf-header">
+                <div class="shelf-title">
+                    <i class="ri-book-shelf-line"></i>
+                    <h3>رفوف الموسوعة الوطنية</h3>
+                </div>
+                <span id="booksCountBadge" class="count-pill">0 كتاب</span>
+            </div>
+
+            <div id="mainBookshelf" class="books-grid"></div>
+        </section>
+
+        <!-- 2. واجهة مكتبتي الشخصية -->
+        <section id="myLibraryView" class="view-page">
+            <div class="shelf-header">
+                <div class="shelf-title">
+                    <i class="ri-bookmark-3-line"></i>
+                    <h3>الكتب المحفوظة في مكتبتي</h3>
+                </div>
+            </div>
+            <div id="savedBooksShelf" class="books-grid"></div>
+
+            <div class="shelf-header" style="margin-top:32px;">
+                <div class="shelf-title">
+                    <i class="ri-upload-cloud-2-line"></i>
+                    <h3>مساهماتي (كتب قمت برفعها)</h3>
+                </div>
+            </div>
+            <div id="myUploadedBooksShelf" class="books-grid"></div>
+        </section>
+
+        <!-- 3. واجهة لوحة المراجعة والإدارة -->
+        <section id="adminView" class="view-page">
+            <div class="admin-banner">
+                <h4><i class="ri-shield-star-line"></i> غرفة الفحص والاعتماد (الإدارة المطلقة)</h4>
+                <p>افحص الكتب المرفوعة، وتأكد من حقوقها قبل نشرها بتحميل مباشر أو تحويلها لنسخة موسوعية للمراجعة والنقاش فقط.</p>
+            </div>
+            <div id="pendingBooksList" class="admin-cards-list"></div>
+        </section>
+
+        <!-- 4. واجهة حسابي والإعدادات -->
+        <section id="profileView" class="view-page">
+            <div class="profile-card">
+                <div class="profile-avatar-wrap">
+                    <img id="profileAvatar" src="https://ui-avatars.com/api/?name=H&background=1b302b&color=c28e48" alt="صورة الحساب">
+                    <span id="adminCrownBadge" class="crown-badge" style="display:none;"><i class="ri-vip-crown-fill"></i></span>
+                </div>
+                <h2 id="profileName">زائر الموسوعة</h2>
+                <p id="profileEmail" class="profile-sub">سجل دخولك لحفظ الكتب والمشاركة في التوثيق والتقييم</p>
+                <button id="authActionBtn" class="btn-main" style="margin-top:14px;">
+                    <i class="ri-google-fill"></i>
+                    <span>تسجيل الدخول بحساب جوجل</span>
+                </button>
+            </div>
+
+            <!-- قائمة الإعدادات -->
+            <div class="settings-card">
+                <h4 class="settings-heading"><i class="ri-settings-4-line"></i> إعدادات المظهر والتطبيق</h4>
+
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <i class="ri-moon-clear-line"></i>
+                        <div>
+                            <strong>الوضع الليلي المريح للقراءة</strong>
+                            <small>تبديل مظهر الموسوعة بين النهاري والليلي</small>
+                        </div>
+                    </div>
+                    <label class="switch">
                         <input type="checkbox" id="darkModeToggle">
-                        <span class="slider round"></span>
+                        <span class="switch-slider"></span>
                     </label>
                 </div>
-                <div class="setting-item" id="installAppBtn" style="display:none; cursor:pointer;">
-                    <div class="setting-info">
-                        <i class='bx bx-download'></i>
-                        <span>تثبيت التطبيق (PWA)</span>
+
+                <div class="setting-row" id="installAppRow" style="cursor:pointer;">
+                    <div class="setting-label">
+                        <i class="ri-smartphone-line"></i>
+                        <div>
+                            <strong>تثبيت تطبيق موسوعة الحجرية</strong>
+                            <small>أضف الموسوعة إلى الشاشة الرئيسية لهاتفك</small>
+                        </div>
                     </div>
-                    <i class='bx bx-chevron-left'></i>
+                    <i class="ri-arrow-left-s-line"></i>
                 </div>
             </div>
 
-            <!-- خيارات الإدارة (تظهر فقط للإدارة) -->
-            <div id="adminSettingsGroup" class="settings-group mt-4" style="display:none;">
-                <h4 style="color:var(--danger-color);"><i class='bx bx-shield-quarter'></i> إدارة الموسوعة</h4>
-                <button id="goToAdminPanelBtn" class="btn-danger w-100"><i class='bx bx-list-check'></i> فتح لوحة المراجعة والطلبات <span id="pendingBadge" class="badge">0</span></button>
-            </div>
-        </section>
+            <!-- إعدادات الإدارة المطلقة (تظهر لبريدي الإدارة فقط) -->
+            <div id="adminSettingsCard" class="settings-card" style="display:none; border-color:var(--gold);">
+                <h4 class="settings-heading" style="color:var(--gold);"><i class="ri-vip-crown-2-line"></i> تحكم الإدارة العليا</h4>
 
-        <!-- صفحة لوحة الإدارة (مخفية إلا للمدير) -->
-        <section id="adminView" class="view-section">
-            <div class="section-title">
-                <h3><i class='bx bx-shield-quarter'></i> الكتب بانتظار المراجعة</h3>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <i class="ri-image-edit-line"></i>
+                        <div>
+                            <strong>تحديث صورة شعار الموقع الرسمي</strong>
+                            <small>ارفع صورة الشعار من جهازك وسيتم استخراج الرابط المباشر تلقائياً</small>
+                        </div>
+                    </div>
+                    <label class="btn-gold-sm" style="cursor:pointer;">
+                        <i class="ri-upload-2-line"></i> اختيار الشعار
+                        <input type="file" id="uploadSiteLogoInput" accept="image/*" style="display:none;">
+                    </label>
+                </div>
             </div>
-            <div id="pendingBooksList" class="admin-list">
-                <!-- الكتب المعلقة تظهر هنا -->
+
+            <!-- بطاقة تعريف المؤسسة -->
+            <div class="about-org-card">
+                <h4><i class="ri-Award-line"></i> عن موسوعة ومكتبة الحجرية</h4>
+                <p>مؤسسة وطنية ثقافية غير ربحية انطلقت لتكون المرجع الرقمي الأول لتوثيق وحفظ المؤلفات والكتّاب اليمنيين، مع التزامها الكامل بحماية حقوق الملكية الفكرية.</p>
             </div>
         </section>
 
     </main>
 
-    <!-- شريط التنقل السفلي التفاعلي (الفقاعة) -->
-    <nav class="bottom-nav">
-        <div class="nav-container">
-            <button class="nav-item active" data-target="shelvesView">
-                <i class='bx bx-home-alt'></i>
+    <!-- شريط التنقل السفلي التفاعلي (تصميم فقاعة سامسونج One UI) -->
+    <nav class="samsung-pill-nav" aria-label="التنقل الرئيسي">
+        <div class="pill-nav-inner">
+            <button class="pill-tab active" data-target="shelvesView">
+                <i class="ri-compass-3-line"></i>
                 <span>الرئيسية</span>
             </button>
-            <button class="nav-item" data-target="myLibraryView">
-                <i class='bx bx-bookmark'></i>
+
+            <button class="pill-tab" data-target="myLibraryView">
+                <i class="ri-bookmark-3-line"></i>
                 <span>مكتبتي</span>
             </button>
-            <!-- زر النشر العائم (في المنتصف) -->
-            <button class="nav-fab" id="openAddModalBtn">
-                <i class='bx bx-plus'></i>
+
+            <button class="pill-tab" id="openAddModalBtn">
+                <i class="ri-add-circle-line"></i>
+                <span>نشر كتاب</span>
             </button>
-            <button class="nav-item" data-target="adminView" id="adminNavBtn" style="display:none;">
-                <i class='bx bx-shield'></i>
-                <span>الإدارة</span>
+
+            <button class="pill-tab" data-target="adminView" id="adminNavBtn" style="display:none;">
+                <div class="icon-with-badge">
+                    <i class="ri-shield-check-line"></i>
+                    <em id="pendingBadge" class="mini-badge">0</em>
+                </div>
+                <span>المراجعة</span>
             </button>
-            <button class="nav-item" data-target="profileView">
-                <i class='bx bx-user'></i>
+
+            <button class="pill-tab" data-target="profileView">
+                <i class="ri-user-3-line"></i>
                 <span>حسابي</span>
             </button>
         </div>
     </nav>
 
-    <!-- نافذة رفع وإضافة كتاب -->
-    <div id="addBookModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3><i class='bx bx-layer-plus'></i> مساهمة بكتاب</h3>
-                <button class="close-btn" id="closeAddModal"><i class='bx bx-x'></i></button>
+    <!-- نافذة إضافة كتاب جديد مع الفحص الذكي للتكرار -->
+    <div id="addBookModal" class="modal-backdrop" style="display:none;">
+        <div class="modal-sheet">
+            <div class="sheet-header">
+                <h3><i class="ri-book-2-line"></i> المساهمة بتوثيق كتاب</h3>
+                <button class="sheet-close" id="closeAddModal"><i class="ri-close-line"></i></button>
             </div>
-            <div class="modal-body">
-                <div class="form-group">
+            <div class="sheet-body">
+                <div class="alert-note">
+                    <i class="ri-information-line"></i>
+                    <span>يفحص النظام العنوان واسم المؤلف ذكياً لمنع التكرار، ثم يُحال الكتاب للمراجعة.</span>
+                </div>
+
+                <div class="field-group">
                     <label>عنوان الكتاب *</label>
-                    <input type="text" id="bookTitleInput" class="form-control" placeholder="اكتب العنوان...">
+                    <input type="text" id="bookTitleInput" placeholder="مثال: رواية يمنستان">
                 </div>
-                <div class="form-group">
-                    <label>المؤلف *</label>
-                    <input type="text" id="bookAuthorInput" class="form-control" placeholder="اسم الكاتب...">
+
+                <div class="field-group">
+                    <label>اسم المؤلف *</label>
+                    <input type="text" id="bookAuthorInput" placeholder="مثال: أحمد رشاد أحمد">
                 </div>
-                <div class="form-group">
-                    <label>التصنيف *</label>
-                    <select id="bookCategoryInput" class="form-control">
+
+                <!-- تنبيه فوري في حال اكتشاف تكرار أثناء الكتابة -->
+                <div id="liveDuplicateWarning" class="duplicate-alert" style="display:none;"></div>
+
+                <div class="field-group">
+                    <label>التصنيف الموضوعي *</label>
+                    <select id="bookCategoryInput">
                         <option value="روايات وأدب">روايات وأدب</option>
                         <option value="تاريخ وتراث يمني">تاريخ وتراث يمني</option>
                         <option value="شعر ودواوين">شعر ودواوين</option>
@@ -183,39 +300,70 @@
                         <option value="سير وتراجم">سير وتراجم</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>نبذة عن الكتاب *</label>
-                    <textarea id="bookDescInput" class="form-control" rows="3" placeholder="وصف قصير..."></textarea>
+
+                <div class="field-group">
+                    <label>نبذة تعريفية عن الكتاب *</label>
+                    <textarea id="bookDescInput" rows="3" placeholder="اكتب ملخصاً عن موضوع الكتاب وأهميته الثقافية..."></textarea>
                 </div>
-                <div class="form-group">
-                    <label>رابط التحميل (درايف) - اختياري</label>
-                    <input type="url" id="bookDriveInput" class="form-control" placeholder="https://drive.google.com/...">
+
+                <div class="field-group">
+                    <label>رابط جوجل درايف (اختياري - للكتب المسموح بتحميلها فقط)</label>
+                    <input type="url" id="bookDriveInput" placeholder="https://drive.google.com/file/d/...">
                 </div>
-                <div class="form-group">
-                    <label>صورة الغلاف *</label>
-                    <div class="file-upload-wrapper">
-                        <input type="file" id="bookCoverInput" accept="image/*" class="file-input">
-                        <div class="file-upload-box">
-                            <i class='bx bx-cloud-upload'></i>
-                            <span>اضغط لاختيار صورة الغلاف</span>
-                        </div>
-                    </div>
+
+                <div class="field-group">
+                    <label>صورة غلاف الكتاب *</label>
+                    <label class="cover-dropzone" id="coverDropzoneLabel">
+                        <input type="file" id="bookCoverInput" accept="image/*" style="display:none;">
+                        <i class="ri-image-add-line"></i>
+                        <span id="coverFileNameText">اضغط لاختيار صورة غلاف واضحة</span>
+                    </label>
                 </div>
-                <p id="uploadStatusMsg" class="status-msg"></p>
-                <button id="submitBookBtn" class="btn-primary w-100"><i class='bx bx-send'></i> إرسال للمراجعة</button>
+
+                <div id="uploadStatusMsg" class="status-feedback"></div>
+
+                <button id="submitBookBtn" class="btn-main w-full">
+                    <i class="ri-send-plane-fill"></i>
+                    <span>فحص التكرار ورفع الكتاب</span>
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- نافذة تفاصيل الكتاب -->
-    <div id="bookDetailsModal" class="modal-overlay">
-        <div class="modal-box modal-large">
-            <div class="modal-header">
-                <h3>تفاصيل الكتاب</h3>
-                <button class="close-btn" id="closeDetailsModal"><i class='bx bx-x'></i></button>
+    <!-- نافذة تفاصيل الكتاب والمراجعات والنقاشات -->
+    <div id="bookDetailsModal" class="modal-backdrop" style="display:none;">
+        <div class="modal-sheet sheet-large">
+            <div class="sheet-header">
+                <h3><i class="ri-book-open-line"></i> بطاقة الكتاب والمراجعات</h3>
+                <button class="sheet-close" id="closeDetailsModal"><i class="ri-close-line"></i></button>
             </div>
-            <div class="modal-body book-details-body">
-                <!-- يُملأ برمجياً -->
+            <div class="sheet-body" id="bookDetailsBody">
+                <!-- يتم تعبئتها ديناميكياً -->
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تأكيد التحميل المباشر من جوجل درايف -->
+    <div id="confirmDownloadModal" class="modal-backdrop" style="display:none;">
+        <div class="modal-sheet sheet-compact">
+            <div class="sheet-header">
+                <h3><i class="ri-download-cloud-2-line"></i> تأكيد التحميل المباشر</h3>
+                <button class="sheet-close" id="closeConfirmDownload"><i class="ri-close-line"></i></button>
+            </div>
+            <div class="sheet-body" style="text-align:center;">
+                <div class="confirm-icon-circle">
+                    <i class="ri-file-pdf-2-line"></i>
+                </div>
+                <h4 id="confirmDownloadTitle" style="margin-bottom:8px;"></h4>
+                <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:20px;">
+                    هل أنت متأكد من رغبتك في تحميل النسخة الرقمية لهذا الكتاب مباشرة من جوجل درايف؟
+                </p>
+                <div style="display:flex; gap:10px;">
+                    <a id="directDownloadBtn" href="#" target="_blank" class="btn-main" style="flex:1; text-decoration:none;">
+                        <i class="ri-check-double-line"></i> نعم، ابدأ التحميل
+                    </a>
+                    <button id="cancelDownloadBtn" class="btn-ghost" style="flex:1;">إلغاء</button>
+                </div>
             </div>
         </div>
     </div>
